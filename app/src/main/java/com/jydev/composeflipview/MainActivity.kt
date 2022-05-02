@@ -3,46 +3,70 @@ package com.jydev.composeflipview
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Button
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var expanded by remember {
-                mutableStateOf(false)
-            }
             Column {
-                Button(onClick = { expanded = !expanded }) {
-                    Text(text = "버튼")
+                listOf(
+                    "안녕",
+                    "고라니",
+                    "사랑",
+                    "행복"
+                ).forEach {
+                    Test(it)
                 }
-                FlipView(
-                    expanded = expanded, spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessLow
-                    )
-                ) {
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                    Text(text = "테스트")
-                }
+
             }
 
         }
+    }
+}
+
+@Composable
+fun Test(title : String){
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+    val rotate: Float by animateFloatAsState(if (expanded) 180f else 0f)
+    Row {
+        Text(
+            text = title,
+            fontSize = 18.sp,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(24.dp))
+        IconButton(
+            modifier = Modifier.rotate(rotate),
+            onClick = {expanded = !expanded}
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_frequently_asked_questions),
+                contentDescription = null
+            )
+        }
+    }
+
+    FlipView(expanded = expanded, animationSpec = spring(
+        dampingRatio = Spring.DampingRatioNoBouncy,
+        stiffness = Spring.StiffnessLow
+    )) {
+        Text(text = "컨텐츠 입니다.",fontSize =20.sp)
     }
 }
 
@@ -57,7 +81,10 @@ fun FlipView(
         if (expanded) height else 0,
         animationSpec
     )
-    Layout(content = content, measurePolicy = { measurables, constraints ->
+    var isMeasure by remember {
+        mutableStateOf(false)
+    }
+    Layout(modifier = if(isMeasure) Modifier.height(with(LocalDensity.current) { heightAnimation.toDp() }) else Modifier,content = content, measurePolicy = { measurables, constraints ->
         var measureHeight = 0
         var measureWidth = 0
         val placeable = measurables.map { measurable ->
@@ -66,7 +93,11 @@ fun FlipView(
             measureWidth = Math.max(placeable.width, measureWidth)
             placeable
         }
-        height = measureHeight
+        if(isMeasure.not()){
+            println("measure : $measureHeight")
+            height = measureHeight
+            isMeasure = true
+        }
         layout(width = measureWidth, height = heightAnimation) {
             var yPosition = 0
             placeable.forEach {
