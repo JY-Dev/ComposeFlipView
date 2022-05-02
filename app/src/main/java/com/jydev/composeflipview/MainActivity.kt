@@ -67,6 +67,8 @@ fun Test(title : String){
         stiffness = Spring.StiffnessLow
     )) {
         Text(text = "컨텐츠 입니다.",fontSize =20.sp)
+        Text(text = "컨텐츠 입니다.",fontSize =20.sp)
+        Text(text = "컨텐츠 입니다.",fontSize =20.sp)
     }
 }
 
@@ -84,26 +86,29 @@ fun FlipView(
     var isMeasure by remember {
         mutableStateOf(false)
     }
-    Layout(modifier = if(isMeasure) Modifier.height(with(LocalDensity.current) { heightAnimation.toDp() }) else Modifier,content = content, measurePolicy = { measurables, constraints ->
-        var measureHeight = 0
-        var measureWidth = 0
-        val placeable = measurables.map { measurable ->
-            val placeable = measurable.measure(constraints = constraints)
-            measureHeight += placeable.height
-            measureWidth = Math.max(placeable.width, measureWidth)
-            placeable
-        }
-        if(isMeasure.not()){
-            println("measure : $measureHeight")
-            height = measureHeight
-            isMeasure = true
-        }
-        layout(width = measureWidth, height = heightAnimation) {
-            var yPosition = 0
-            placeable.forEach {
-                it.placeRelativeWithLayer(0, yPosition)
-                yPosition += it.height
+    Box(modifier = if(isMeasure) Modifier.height(with(LocalDensity.current) { heightAnimation.toDp() }) else Modifier) {
+        Layout(content = content, measurePolicy = { measurables, constraints ->
+            var measureHeight = 0
+            var measureWidth = 0
+            val placeable = measurables.map { measurable ->
+                val placeable = measurable.measure(constraints = constraints)
+                measureHeight += placeable.height
+                measureWidth = Math.max(placeable.width, measureWidth)
+                placeable
             }
-        }
-    })
+            if(measureHeight != 0){
+                height = measureHeight
+                isMeasure = true
+            }
+            println("test : $measureHeight")
+            layout(width = measureWidth, height = heightAnimation) {
+                var yPosition = 0
+                placeable.forEach {
+                    it.placeRelativeWithLayer(0, yPosition)
+                    yPosition += it.height
+                }
+            }
+        })
+    }
+
 }
