@@ -10,6 +10,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
@@ -87,7 +88,7 @@ fun FlipView(
         mutableStateOf(false)
     }
     Box(modifier = if(isMeasure) Modifier.height(with(LocalDensity.current) { heightAnimation.toDp() }) else Modifier) {
-        Layout(content = content, measurePolicy = { measurables, constraints ->
+        Layout(content = content, modifier = Modifier.clipToBounds(), measurePolicy = { measurables, constraints ->
             var measureHeight = 0
             var measureWidth = 0
             val placeable = measurables.map { measurable ->
@@ -100,12 +101,12 @@ fun FlipView(
                 height = measureHeight
                 isMeasure = true
             }
-            println("test : $measureHeight")
             layout(width = measureWidth, height = heightAnimation) {
                 var yPosition = 0
                 placeable.forEach {
                     it.placeRelativeWithLayer(0, yPosition)
                     yPosition += it.height
+
                 }
             }
         })
